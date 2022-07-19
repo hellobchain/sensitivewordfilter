@@ -40,7 +40,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	doFilter(leveldbStore, newDfa)
+	doFilter(leveldbStore, nil, newDfa)
 
 	memStore, err := memory.NewMemoryStore(memory.MemoryConfig{
 		DataSource: []string{"文件", "暴", "力"},
@@ -49,12 +49,12 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	doFilter(memStore, newDfa)
+	doFilter(memStore, nil, newDfa)
 
 }
 
-func doFilter(store store.SensitivewordStore, filter filter.SensitivewordFilter) {
-	filterManage := sensitivewordfilter.NewSensitivewordManager(store, filter)
+func doFilter(sensitivewordStore store.SensitivewordStore, excludesStore store.SensitivewordStore, filter filter.SensitivewordFilter) {
+	filterManage := sensitivewordfilter.NewSensitivewordManager(sensitivewordStore, excludesStore, filter)
 	result, err := filterManage.Filter().Filter(filterText, '@')
 	if err != nil {
 		panic(err)

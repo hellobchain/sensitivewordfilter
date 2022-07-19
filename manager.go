@@ -16,7 +16,7 @@ const (
 )
 
 // NewSensitivewordManager 使用敏感词存储接口创建敏感词管理的实例
-func NewSensitivewordManager(store store.SensitivewordStore, filter filter.SensitivewordFilter, checkInterval ...time.Duration) *SensitivewordManager {
+func NewSensitivewordManager(sensitivewordStore store.SensitivewordStore, excludesStore store.SensitivewordStore, filter filter.SensitivewordFilter, checkInterval ...time.Duration) *SensitivewordManager {
 	interval := DefaultCheckInterval
 	if len(checkInterval) == 0 {
 		interval = -1
@@ -24,10 +24,11 @@ func NewSensitivewordManager(store store.SensitivewordStore, filter filter.Sensi
 		interval = checkInterval[0]
 	}
 	manage := &SensitivewordManager{
-		store:    store,
-		version:  store.Version(),
-		filter:   filter,
-		interval: interval,
+		sensitivewordStore: sensitivewordStore,
+		excludesStore:      excludesStore,
+		version:            sensitivewordStore.Version(),
+		filter:             filter,
+		interval:           interval,
 	}
 	if interval != -1 {
 		go func() {
@@ -39,23 +40,24 @@ func NewSensitivewordManager(store store.SensitivewordStore, filter filter.Sensi
 
 // SensitivewordManager 提供敏感词的管理
 type SensitivewordManager struct {
-	store     store.SensitivewordStore
-	filter    filter.SensitivewordFilter
-	filterMux sync.RWMutex
-	version   uint64
-	interval  time.Duration
+	sensitivewordStore store.SensitivewordStore
+	excludesStore      store.SensitivewordStore
+	filter             filter.SensitivewordFilter
+	filterMux          sync.RWMutex
+	version            uint64
+	interval           time.Duration
 }
 
 func (dm *SensitivewordManager) checkVersion() {
 	time.AfterFunc(dm.interval, func() {
-		storeVersion := dm.store.Version()
+		storeVersion := dm.sensitivewordStore.Version()
 		if dm.version < storeVersion {
 			dm.filterMux.Lock()
 			switch dm.filter.(type) {
 			case *dfa.NodeFilter:
-				dm.filter = dfa.NewNodeChanFilter(dm.store.Read())
+				dm.filter = dfa.NewNodeChanFilter(dm.sensitivewordStore.Read())
 			case *newdfa.NodeFilter:
-				dm.filter = newdfa.NewNodeChanFilter(dm.store.Read())
+				dm.filter = newdfa.NewNodeChanFilter(dm.sensitivewordStore.Read())
 			}
 			dm.filterMux.Unlock()
 			dm.version = storeVersion
@@ -64,9 +66,14 @@ func (dm *SensitivewordManager) checkVersion() {
 	})
 }
 
-// Store 获取敏感词存储接口
-func (dm *SensitivewordManager) Store() store.SensitivewordStore {
-	return dm.store
+// SensitiveWordStore 获取敏感词存储接口
+func (dm *SensitivewordManager) SensitiveWordStore() store.SensitivewordStore {
+	return dm.sensitivewordStore
+}
+
+// ExcludesStore 获取敏感词存储接口
+func (dm *SensitivewordManager) ExcludesStore() store.SensitivewordStore {
+	return dm.excludesStore
 }
 
 // Filter 获取敏感词过滤接口
