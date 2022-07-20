@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+
 	"github.com/wsw365904/sensitivewordfilter"
 	"github.com/wsw365904/sensitivewordfilter/filter"
 	"github.com/wsw365904/sensitivewordfilter/filter/newdfa"

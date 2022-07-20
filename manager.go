@@ -1,9 +1,10 @@
 package sensitivewordfilter
 
 import (
-	"github.com/wsw365904/sensitivewordfilter/filter/newdfa"
 	"sync"
 	"time"
+
+	"github.com/wsw365904/sensitivewordfilter/filter/newdfa"
 
 	"github.com/wsw365904/sensitivewordfilter/filter"
 	"github.com/wsw365904/sensitivewordfilter/filter/dfa"
