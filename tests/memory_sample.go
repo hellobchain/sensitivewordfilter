@@ -18,44 +18,30 @@ func main() {
 	leveldbStore, err := leveldb.NewLevelDbStore(leveldb.LevelDbConfig{
 		Path: "./leveldb",
 	})
-	err = leveldbStore.Write("文件", "暴", "力")
 	if err != nil {
 		panic(err)
 	}
-	allValue, err := leveldbStore.ReadAll()
+	err = leveldbStore.Write("文件", "暴力", "力")
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println("allRes", allValue)
-	err = leveldbStore.Remove("文件")
-	if err != nil {
-		panic(err)
-	}
-	allValue, err = leveldbStore.ReadAll()
-	if err != nil {
-		panic(err)
-	}
-	fmt.Println("delete allRes", allValue)
 	newDfa := newdfa.NewNodeChanFilter(leveldbStore.Read())
-	if err != nil {
-		panic(err)
-	}
 	doFilter(leveldbStore, nil, newDfa)
 
 	memStore, err := memory.NewMemoryStore(memory.MemoryConfig{
-		DataSource: []string{"文件", "暴", "力"},
+		DataSource: []string{"文件", "暴力", "力"},
 	})
-	newDfa = newdfa.NewNodeChanFilter(memStore.Read())
 	if err != nil {
 		panic(err)
 	}
+	newDfa = newdfa.NewNodeChanFilter(memStore.Read())
 	doFilter(memStore, nil, newDfa)
 
 }
 
 func doFilter(sensitivewordStore store.SensitivewordStore, excludesStore store.SensitivewordStore, filter filter.SensitivewordFilter) {
 	filterManage := sensitivewordfilter.NewSensitivewordManager(sensitivewordStore, excludesStore, filter)
-	result, err := filterManage.Filter().Filter(filterText, '@')
+	result, err := filterManage.Filter().Filter(filterText, '*')
 	if err != nil {
 		panic(err)
 	}
