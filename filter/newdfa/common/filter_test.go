@@ -1,4 +1,4 @@
-package newdfa
+package common
 
 import (
 	"io"

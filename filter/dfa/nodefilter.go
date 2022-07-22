@@ -3,6 +3,7 @@ package dfa
 import (
 	"bufio"
 	"bytes"
+	"regexp"
 	"unicode"
 
 	"io"
@@ -13,9 +14,7 @@ import (
 // NewNodeReaderFilter 创建节点过滤器，实现敏感词的过滤
 // 从可读流中读取敏感词数据(以指定的分隔符读取数据)
 func NewNodeReaderFilter(rd io.Reader, delim byte) filter.SensitivewordFilter {
-	nf := &NodeFilter{
-		root: newNode(),
-	}
+	nf := newNodeFilter()
 	buf := new(bytes.Buffer)
 	_, _ = io.Copy(buf, rd)
 	buf.WriteByte(delim)
@@ -27,7 +26,7 @@ func NewNodeReaderFilter(rd io.Reader, delim byte) filter.SensitivewordFilter {
 		if line == "" {
 			continue
 		}
-		nf.addSensitivewordWords(line)
+		nf.addSensitivewords(line)
 	}
 	buf.Reset()
 	return nf
@@ -36,11 +35,9 @@ func NewNodeReaderFilter(rd io.Reader, delim byte) filter.SensitivewordFilter {
 // NewNodeChanFilter 创建节点过滤器，实现敏感词的过滤
 // 从通道中读取敏感词数据
 func NewNodeChanFilter(text <-chan string) filter.SensitivewordFilter {
-	nf := &NodeFilter{
-		root: newNode(),
-	}
+	nf := newNodeFilter()
 	for v := range text {
-		nf.addSensitivewordWords(v)
+		nf.addSensitivewords(v)
 	}
 	return nf
 }
@@ -48,11 +45,9 @@ func NewNodeChanFilter(text <-chan string) filter.SensitivewordFilter {
 // NewNodeFilter 创建节点过滤器，实现敏感词的过滤
 // 从切片中读取敏感词数据
 func NewNodeFilter(text []string) filter.SensitivewordFilter {
-	nf := &NodeFilter{
-		root: newNode(),
-	}
+	nf := newNodeFilter()
 	for i, l := 0, len(text); i < l; i++ {
-		nf.addSensitivewordWords(text[i])
+		nf.addSensitivewords(text[i])
 	}
 	return nf
 }
@@ -70,9 +65,29 @@ type node struct {
 
 type NodeFilter struct {
 	root *node
+	noise *regexp.Regexp
 }
 
-func (nf *NodeFilter) addSensitivewordWords(text string) {
+func newNodeFilter() *NodeFilter {
+	return &NodeFilter{
+		root: newNode(),
+		noise: regexp.MustCompile(`[\|\s&%$@*]+`),
+	}
+}
+
+func (nf *NodeFilter) add(texts ...string) {
+	for _, text := range texts {
+		nf.addSensitivewords(text)
+	}
+}
+
+func (nf *NodeFilter) del(texts ...string) {
+	for _, text := range texts {
+		nf.delSensitivewords(text)
+	}
+}
+
+func (nf *NodeFilter) addSensitivewords(text string) {
 	n := nf.root
 	uchars := []rune(text)
 	for i, l := 0, len(uchars); i < l; i++ {
@@ -85,6 +100,29 @@ func (nf *NodeFilter) addSensitivewordWords(text string) {
 		n = n.child[uchars[i]]
 	}
 	n.end = true
+}
+
+
+func (nf *NodeFilter) delSensitivewords(text string) {
+	n := nf.root
+	uchars := []rune(text)
+	for i, l := 0, len(uchars); i < l; i++ {
+		if next, ok := n.child[uchars[i]]; !ok {
+			return
+		} else {
+			n = next
+		}
+	}
+	n.end = false
+}
+
+
+func (nf *NodeFilter) Remove(text ...string) {
+	nf.del(text...)
+}
+
+func (nf *NodeFilter) Add(text ...string) {
+	nf.add(text...)
 }
 
 func (nf *NodeFilter) Filter(text string, excludes ...rune) ([]string, error) {
@@ -260,4 +298,14 @@ func (nf *NodeFilter) appendTo(dst, src []int) []int {
 		}
 	}
 	return append(dst, t...)
+}
+
+// UpdateNoisePattern 更新去噪模式
+func (nf *NodeFilter) UpdateNoisePattern(pattern string) {
+	nf.noise = regexp.MustCompile(pattern)
+}
+
+// RemoveNoise 去除空格等噪音
+func (nf *NodeFilter) RemoveNoise(text string) string {
+	return nf.noise.ReplaceAllString(text, "")
 }

@@ -1,4 +1,4 @@
-package newdfa
+package common
 
 // Trie 短语组成的Trie树.
 type Trie struct {
@@ -7,8 +7,8 @@ type Trie struct {
 
 // Node Trie树上的一个节点.
 type Node struct {
-	isRootNode bool
-	isPathEnd  bool
+	isRootNode bool  // 是否是根节点
+	isPathEnd  bool  // 是否敏感词结束词 判断是否为某个路径的结束
 	Character  rune
 	Children   map[rune]*Node
 }
@@ -234,7 +234,7 @@ func (tree *Trie) FindAll(text string) []string {
 }
 
 // FindAllMap 找有所有包含在词库中的词
-func (tree *Trie) FindAllMap(text string, data map[string]int) map[string]int {
+func (tree *Trie) FindAllMap(text string, data map[string]int)  {
 	var matches []string
 	var (
 		parent  = tree.Root
@@ -275,8 +275,6 @@ func (tree *Trie) FindAllMap(text string, data map[string]int) map[string]int {
 		}
 		data[matches[i]] = c + 1
 	}
-
-	return data
 }
 
 // NewNode 新建子节点

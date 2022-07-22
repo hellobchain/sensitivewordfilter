@@ -6,6 +6,13 @@ import (
 
 // SensitivewordFilter 提供敏感词过滤接口
 type SensitivewordFilter interface {
+
+	// Add 增加文本
+	Add(text ...string)
+
+	// Remove 移除文本
+	Remove(text ...string)
+
 	// Filter 文本过滤函数
 	// excludes 表示排除指定的字符
 	// 返回文本中出现的敏感词,如果敏感词不存在则返回nil

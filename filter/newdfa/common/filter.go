@@ -1,4 +1,4 @@
-package newdfa
+package common
 
 import (
 	"bufio"
@@ -85,9 +85,9 @@ func (filter *Filter) FindAll(text string) []string {
 	return filter.trie.FindAll(text)
 }
 
-// FindAllMap 找到所有匹配词
-func (filter *Filter) FindAllMap(text string, data map[string]int) map[string]int {
-	return filter.trie.FindAllMap(text, data)
+// FindAllMap 找到所有匹配词以及匹配词出现的次数
+func (filter *Filter) FindAllMap(text string, data map[string]int)  {
+	filter.trie.FindAllMap(text, data)
 }
 
 // Validate 检测字符串是否合法

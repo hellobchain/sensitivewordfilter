@@ -3,16 +3,18 @@ package newdfa
 import (
 	"bufio"
 	"bytes"
-	"github.com/wsw365904/sensitivewordfilter/filter"
 	"io"
 	"unicode"
+
+	"github.com/wsw365904/sensitivewordfilter/filter"
+	"github.com/wsw365904/sensitivewordfilter/filter/newdfa/common"
 )
 
 // NewNodeReaderFilter 创建节点过滤器，实现敏感词的过滤
 // 从可读流中读取敏感词数据(以指定的分隔符读取数据)
 func NewNodeReaderFilter(rd io.Reader, delim byte) filter.SensitivewordFilter {
 	nf := &NodeFilter{
-		filter: New(),
+		filter: common.New(),
 	}
 	buf := new(bytes.Buffer)
 	_, _ = io.Copy(buf, rd)
@@ -25,7 +27,7 @@ func NewNodeReaderFilter(rd io.Reader, delim byte) filter.SensitivewordFilter {
 		if line == "" {
 			continue
 		}
-		nf.addSensitivewordWords(line)
+		nf.addSensitiveWords(line)
 	}
 	buf.Reset()
 	return nf
@@ -35,10 +37,10 @@ func NewNodeReaderFilter(rd io.Reader, delim byte) filter.SensitivewordFilter {
 // 从通道中读取敏感词数据
 func NewNodeChanFilter(text <-chan string) filter.SensitivewordFilter {
 	nf := &NodeFilter{
-		filter: New(),
+		filter: common.New(),
 	}
 	for v := range text {
-		nf.addSensitivewordWords(v)
+		nf.addSensitiveWords(v)
 	}
 	return nf
 }
@@ -47,20 +49,32 @@ func NewNodeChanFilter(text <-chan string) filter.SensitivewordFilter {
 // 从切片中读取敏感词数据
 func NewNodeFilter(text []string) filter.SensitivewordFilter {
 	nf := &NodeFilter{
-		filter: New(),
+		filter: common.New(),
 	}
 	for i, l := 0, len(text); i < l; i++ {
-		nf.addSensitivewordWords(text[i])
+		nf.addSensitiveWords(text[i])
 	}
 	return nf
 }
 
 type NodeFilter struct {
-	filter *Filter
+	filter *common.Filter
 }
 
-func (nf *NodeFilter) addSensitivewordWords(text string) {
+func (nf *NodeFilter) Add(text ...string) {
+	nf.filter.AddWord(text...)
+}
+
+func (nf *NodeFilter) Remove(text ...string) {
+	nf.filter.DelWord(text...)
+}
+
+func (nf *NodeFilter) addSensitiveWords(text string) {
 	nf.filter.AddWord(text)
+}
+
+func (nf *NodeFilter) delSensitiveWords(text string) {
+	nf.filter.DelWord(text)
 }
 
 func (nf *NodeFilter) Filter(text string, excludes ...rune) ([]string, error) {
