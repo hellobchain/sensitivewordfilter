@@ -41,4 +41,6 @@ type SensitivewordFilter interface {
 	// delim 替换的字符
 	// 如果出现异常，则返回error
 	Replace(text string, delim rune, excludes ...rune) (string, error)
+	// IsExist 是否存在敏感词
+	IsExist(text string, excludes ...rune) bool
 }

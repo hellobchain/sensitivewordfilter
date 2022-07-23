@@ -61,6 +61,11 @@ type NodeFilter struct {
 	filter *common.Filter
 }
 
+func (nf *NodeFilter) IsExist(text string, excludes ...rune) bool {
+	isExist, _ := nf.FindIn(text, excludes...)
+	return isExist
+}
+
 func (nf *NodeFilter) Add(text ...string) {
 	nf.filter.AddWord(text...)
 }
@@ -144,6 +149,34 @@ func (nf *NodeFilter) Replace(text string, delim rune, excludes ...rune) (string
 	newText := string(newWchar)
 	replaceText := nf.filter.Replace(newText, delim)
 	return replaceText, nil
+}
+
+// FindIn 检测敏感词
+func (nf *NodeFilter) FindIn(text string, excludes ...rune) (bool, string) {
+	var newWchar []rune
+	uchars := []rune(text)
+	for i, l := 0, len(uchars); i < l; i++ {
+		if nf.checkExclude(uchars[i], excludes...) {
+			continue
+		}
+		newWchar = append(newWchar, uchars[i])
+	}
+	newText := string(newWchar)
+	return nf.filter.FindIn(newText)
+}
+
+// Validate 检测字符串是否合法
+func (nf *NodeFilter) Validate(text string, excludes ...rune) (bool, string) {
+	var newWchar []rune
+	uchars := []rune(text)
+	for i, l := 0, len(uchars); i < l; i++ {
+		if nf.checkExclude(uchars[i], excludes...) {
+			continue
+		}
+		newWchar = append(newWchar, uchars[i])
+	}
+	newText := string(newWchar)
+	return nf.filter.Validate(newText)
 }
 
 func (nf *NodeFilter) checkExclude(u rune, excludes ...rune) bool {

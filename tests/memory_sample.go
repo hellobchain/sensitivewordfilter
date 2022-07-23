@@ -49,4 +49,5 @@ func doFilter(sensitivewordStore store.SensitivewordStore, excludesStore store.S
 	fmt.Println(result)
 	res, err := filterManage.Filter().Replace(filterText, '暴')
 	fmt.Println(res)
+	fmt.Println(filterManage.Filter().IsExist(filterText))
 }

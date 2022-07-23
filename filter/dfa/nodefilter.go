@@ -64,13 +64,18 @@ type node struct {
 }
 
 type NodeFilter struct {
-	root *node
+	root  *node
 	noise *regexp.Regexp
+}
+
+func (nf *NodeFilter) IsExist(text string, excludes ...rune) bool {
+	isExist, _ := nf.FindIn(text, excludes...)
+	return isExist
 }
 
 func newNodeFilter() *NodeFilter {
 	return &NodeFilter{
-		root: newNode(),
+		root:  newNode(),
 		noise: regexp.MustCompile(`[\|\s&%$@*]+`),
 	}
 }
@@ -102,7 +107,6 @@ func (nf *NodeFilter) addSensitivewords(text string) {
 	n.end = true
 }
 
-
 func (nf *NodeFilter) delSensitivewords(text string) {
 	n := nf.root
 	uchars := []rune(text)
@@ -115,7 +119,6 @@ func (nf *NodeFilter) delSensitivewords(text string) {
 	}
 	n.end = false
 }
-
 
 func (nf *NodeFilter) Remove(text ...string) {
 	nf.del(text...)
@@ -189,6 +192,72 @@ func (nf *NodeFilter) Replace(text string, delim rune, excludes ...rune) (string
 		uchars[idexs[i]] = delim
 	}
 	return string(uchars), nil
+}
+
+// FindIn 检测敏感词
+func (nf *NodeFilter) FindIn(text string, excludes ...rune) (bool, string) {
+	newText := nf.RemoveNoise(text)
+	var newWchar []rune
+	uchars := []rune(newText)
+	for i, l := 0, len(uchars); i < l; i++ {
+		if nf.checkExclude(uchars[i], excludes...) {
+			continue
+		}
+		newWchar = append(newWchar, uchars[i])
+	}
+	newText = string(newWchar)
+	validated, first := nf.Validate(text)
+	return !validated, first
+}
+
+// Validate 检测字符串是否合法
+func (nf *NodeFilter) Validate(text string, excludes ...rune) (bool, string) {
+	newText := nf.RemoveNoise(text)
+	var newWchar []rune
+	uchars := []rune(newText)
+	for i, l := 0, len(uchars); i < l; i++ {
+		if nf.checkExclude(uchars[i], excludes...) {
+			continue
+		}
+		newWchar = append(newWchar, uchars[i])
+	}
+	newText = string(newWchar)
+	return nf.validate(newText)
+}
+
+// validate 验证字符串是否合法，如不合法则返回false和检测到
+// 的第一个敏感词
+func (nf *NodeFilter) validate(text string) (bool, string) {
+	const (
+		Empty = ""
+	)
+	var (
+		parent  = nf.root
+		current *node
+		runes   = []rune(text)
+		length  = len(runes)
+		left    = 0
+		found   bool
+	)
+
+	for position := 0; position < len(runes); position++ {
+		current, found = parent.child[runes[position]]
+
+		if !found || (!current.end && position == length-1) {
+			parent = nf.root
+			position = left
+			left++
+			continue
+		}
+
+		if current.end && left <= position {
+			return false, string(runes[left : position+1])
+		}
+
+		parent = current
+	}
+
+	return true, Empty
 }
 
 func (nf *NodeFilter) checkExclude(u rune, excludes ...rune) bool {
