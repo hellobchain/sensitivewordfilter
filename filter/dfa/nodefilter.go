@@ -68,9 +68,43 @@ type NodeFilter struct {
 	noise *regexp.Regexp
 }
 
+func (nf *NodeFilter) IsExistReader(reader io.Reader, excludes ...rune) bool {
+	var (
+		uchars []rune
+	)
+	bi := bufio.NewReader(reader)
+	for {
+		ur, _, err := bi.ReadRune()
+		if err != nil {
+			if err != io.EOF {
+				return false
+			}
+			break
+		}
+		if nf.checkExclude(ur, excludes...) {
+			continue
+		}
+		if (unicode.IsSpace(ur) || unicode.IsPunct(ur)) && len(uchars) > 0 {
+			isExist, _ := nf.FindIn(string(uchars[:]))
+			if isExist {
+				return isExist
+			}
+			uchars = nil
+			continue
+		}
+		uchars = append(uchars, ur)
+	}
+	if len(uchars) > 0 {
+		isExist, _ := nf.FindIn(string(uchars))
+		return isExist
+	}
+	return false
+}
+
 func (nf *NodeFilter) IsExist(text string, excludes ...rune) bool {
-	isExist, _ := nf.FindIn(text, excludes...)
-	return isExist
+	buf := bytes.NewBufferString(text)
+	defer buf.Reset()
+	return nf.IsExistReader(buf, excludes...)
 }
 
 func newNodeFilter() *NodeFilter {
@@ -196,32 +230,30 @@ func (nf *NodeFilter) Replace(text string, delim rune, excludes ...rune) (string
 
 // FindIn 检测敏感词
 func (nf *NodeFilter) FindIn(text string, excludes ...rune) (bool, string) {
-	newText := nf.RemoveNoise(text)
 	var newWchar []rune
-	uchars := []rune(newText)
+	uchars := []rune(text)
 	for i, l := 0, len(uchars); i < l; i++ {
 		if nf.checkExclude(uchars[i], excludes...) {
 			continue
 		}
 		newWchar = append(newWchar, uchars[i])
 	}
-	newText = string(newWchar)
-	validated, first := nf.Validate(text)
+	newText := string(newWchar)
+	validated, first := nf.Validate(newText)
 	return !validated, first
 }
 
 // Validate 检测字符串是否合法
 func (nf *NodeFilter) Validate(text string, excludes ...rune) (bool, string) {
-	newText := nf.RemoveNoise(text)
 	var newWchar []rune
-	uchars := []rune(newText)
+	uchars := []rune(text)
 	for i, l := 0, len(uchars); i < l; i++ {
 		if nf.checkExclude(uchars[i], excludes...) {
 			continue
 		}
 		newWchar = append(newWchar, uchars[i])
 	}
-	newText = string(newWchar)
+	newText := string(newWchar)
 	return nf.validate(newText)
 }
 
