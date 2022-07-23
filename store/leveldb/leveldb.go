@@ -13,7 +13,7 @@ const (
 
 // NewLevelDbStore 创建敏感词内存存储
 func NewLevelDbStore(config LevelDbConfig) (*LevelDbStore, error) {
-	memStore := &LevelDbStore{
+	store := &LevelDbStore{
 		dataStore: cmap.NewConcurrencyMap(),
 	}
 
@@ -23,21 +23,21 @@ func NewLevelDbStore(config LevelDbConfig) (*LevelDbStore, error) {
 	}
 
 	if config.Path != "" {
-		memStore.Db, err = leveldb.OpenFile(config.Path, nil)
+		store.Db, err = leveldb.OpenFile(config.Path, nil)
 		if err != nil {
 			return nil, err
 		}
 	}
 
-	iter := memStore.Db.NewIterator(nil, nil)
+	iter := store.Db.NewIterator(nil, nil)
 	for iter.Next() {
-		err := memStore.dataStore.Set(string(iter.Key()), 1)
+		err := store.dataStore.Set(string(iter.Key()), 1)
 		if err != nil {
 			return nil, err
 		}
 	}
 
-	return memStore, nil
+	return store, nil
 }
 
 // LevelDbConfig 敏感词内存存储配置
