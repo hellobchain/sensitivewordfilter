@@ -1,6 +1,6 @@
 package rocksdb
 
-import "github.com/wsw365904/sensitivewordfilter/store"
+import "github.com/hellobchain/sensitivewordfilter/store"
 
 type RocksdbStore struct {
 }

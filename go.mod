@@ -1,4 +1,4 @@
-module github.com/wsw365904/sensitivewordfilter
+module github.com/hellobchain/sensitivewordfilter
 
 go 1.16
 

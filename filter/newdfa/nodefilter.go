@@ -6,8 +6,8 @@ import (
 	"io"
 	"unicode"
 
-	"github.com/wsw365904/sensitivewordfilter/filter"
-	"github.com/wsw365904/sensitivewordfilter/filter/newdfa/common"
+	"github.com/hellobchain/sensitivewordfilter/filter"
+	"github.com/hellobchain/sensitivewordfilter/filter/newdfa/common"
 )
 
 // NewNodeReaderFilter 创建节点过滤器，实现敏感词的过滤

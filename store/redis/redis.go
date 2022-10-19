@@ -2,7 +2,7 @@ package redis
 
 import (
 	"github.com/go-redis/redis"
-	"github.com/wsw365904/sensitivewordfilter/store"
+	"github.com/hellobchain/sensitivewordfilter/store"
 	"sync/atomic"
 )
 

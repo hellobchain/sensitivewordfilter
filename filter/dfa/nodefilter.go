@@ -8,7 +8,7 @@ import (
 
 	"io"
 
-	"github.com/wsw365904/sensitivewordfilter/filter"
+	"github.com/hellobchain/sensitivewordfilter/filter"
 )
 
 // NewNodeReaderFilter 创建节点过滤器，实现敏感词的过滤

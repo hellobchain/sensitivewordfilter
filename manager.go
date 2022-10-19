@@ -4,11 +4,11 @@ import (
 	"sync"
 	"time"
 
-	"github.com/wsw365904/sensitivewordfilter/filter/newdfa"
+	"github.com/hellobchain/sensitivewordfilter/filter/newdfa"
 
-	"github.com/wsw365904/sensitivewordfilter/filter"
-	"github.com/wsw365904/sensitivewordfilter/filter/dfa"
-	"github.com/wsw365904/sensitivewordfilter/store"
+	"github.com/hellobchain/sensitivewordfilter/filter"
+	"github.com/hellobchain/sensitivewordfilter/filter/dfa"
+	"github.com/hellobchain/sensitivewordfilter/store"
 )
 
 const (

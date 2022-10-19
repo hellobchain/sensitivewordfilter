@@ -3,12 +3,12 @@ package main
 import (
 	"fmt"
 
-	"github.com/wsw365904/sensitivewordfilter"
-	"github.com/wsw365904/sensitivewordfilter/filter"
-	"github.com/wsw365904/sensitivewordfilter/filter/newdfa"
-	"github.com/wsw365904/sensitivewordfilter/store"
-	"github.com/wsw365904/sensitivewordfilter/store/leveldb"
-	"github.com/wsw365904/sensitivewordfilter/store/memory"
+	"github.com/hellobchain/sensitivewordfilter"
+	"github.com/hellobchain/sensitivewordfilter/filter"
+	"github.com/hellobchain/sensitivewordfilter/filter/newdfa"
+	"github.com/hellobchain/sensitivewordfilter/store"
+	"github.com/hellobchain/sensitivewordfilter/store/leveldb"
+	"github.com/hellobchain/sensitivewordfilter/store/memory"
 )
 
 var (
